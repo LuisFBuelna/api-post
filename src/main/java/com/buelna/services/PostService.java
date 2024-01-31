@@ -1,6 +1,7 @@
 package com.buelna.services;
 
 import com.buelna.client.PostFeignClient;
+import com.buelna.exceptions.NotFoundException;
 import com.buelna.utils.PostComparator;
 import com.buelna.dao.JdbcPostDAO;
 import com.buelna.entities.Post;
@@ -10,12 +11,12 @@ import com.buelna.repositories.PostMongoRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -31,9 +32,14 @@ public class PostService {
 
     public List<Post> getAllPost() {
 
-        List<Post> listaJdbc = jdbcPostDAO.getAllPost();
+        List<Post> listaJdbc = jdbcPostDAO.getAllPost()
+                .orElseThrow(() -> {
+                   return new NotFoundException("Lista de elementos no encontrada");
+                });
 
-        List<PostMongo> listaMongo = mongoRepository.findAll();
+        List<PostMongo> listaMongo = Optional.of(mongoRepository.findAll()).orElseThrow(() -> {
+            return new NotFoundException("Lista de elementos no encontrada");
+        });
 
         listaJdbc.addAll(PostMapper.mapper.listPostMongoToPost(listaMongo));
 
@@ -42,9 +48,10 @@ public class PostService {
         return listaJdbc;
     }
 
-    public ResponseEntity<HttpStatus> insertPosts() {
+    public HttpStatus insertPosts() {
 
-        List<Post> posts = feignClient.getPostsFeign();
+        List<Post> posts = feignClient.getPostsFeign()
+                .orElseThrow(() -> new NotFoundException("Lista de elementos no encontrada"));
 
         Post[] postsArray = posts.toArray(new Post[posts.size()]);
 
@@ -64,7 +71,7 @@ public class PostService {
 
         mongoRepository.saveAll(Arrays.stream(impares).toList());
 
-        return ResponseEntity.ok(HttpStatus.CREATED);
+        return HttpStatus.CREATED;
     }
 
     public void deleteAll() {

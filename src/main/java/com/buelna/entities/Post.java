@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
+import java.io.Serializable;
+
 @Table(name = "post")
 @Data
-public class Post {
+public class Post implements Serializable {
+
+    static final long serialVersionUID = 1L;
 
     @Id
     @Column(name = "id")

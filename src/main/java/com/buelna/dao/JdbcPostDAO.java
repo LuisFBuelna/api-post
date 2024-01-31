@@ -1,21 +1,19 @@
 package com.buelna.dao;
 
 import com.buelna.entities.Post;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.buelna.exceptions.NotFoundException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
-@Component
+@Repository
 public class JdbcPostDAO implements PostDAO<Post> {
-
-    private static final Logger log = LoggerFactory.getLogger(PostDAO.class);
 
     private JdbcTemplate jdbcTemplate;
 
@@ -33,9 +31,9 @@ public class JdbcPostDAO implements PostDAO<Post> {
     };
 
     @Override
-    public List<Post> getAllPost() {
+    public Optional<List<Post>> getAllPost() {
         String sql = "SELECT id, user_id, title, body FROM post";
-        return jdbcTemplate.query(sql, rowMapper);
+        return Optional.of(jdbcTemplate.query(sql, rowMapper));
     }
 
     @Override
